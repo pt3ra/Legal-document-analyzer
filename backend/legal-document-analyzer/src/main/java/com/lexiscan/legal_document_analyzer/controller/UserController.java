@@ -1,11 +1,9 @@
 package com.lexiscan.legal_document_analyzer.controller;
 
-import com.lexiscan.legal_document_analyzer.dto.LoginRequest;
-import com.lexiscan.legal_document_analyzer.dto.LoginResponse;
-import com.lexiscan.legal_document_analyzer.dto.SignUpRequest;
-import com.lexiscan.legal_document_analyzer.dto.UserNameResponse;
+import com.lexiscan.legal_document_analyzer.dto.*;
 import com.lexiscan.legal_document_analyzer.entity.User;
 import com.lexiscan.legal_document_analyzer.jwt.JwtUtils;
+import com.lexiscan.legal_document_analyzer.security.UserDetailsPrincipal;
 import com.lexiscan.legal_document_analyzer.service.UserServiceImpl;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
@@ -18,6 +16,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -25,7 +24,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/users")
@@ -43,11 +41,11 @@ public class UserController {
         this.jwtUtils = jwtUtils;
     }
 
-    @GetMapping("/{login}")
+    /*@GetMapping("/{login}")
     public ResponseEntity<User> getUserByLogin(@PathVariable String login) {
         Optional<User> user = userServiceImpl.findByLogin(login);
         return user.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build()); // ---> Replace with DTO
-    }
+    }*/
 
     @PreAuthorize("isAnonymous()")
     @PostMapping("/signin")
@@ -122,6 +120,34 @@ public class UserController {
         return ResponseEntity.ok(new UserNameResponse(userDetails.getUsername()));
     }
 
+    /** USER DETAILS UPDATE METHODS FOR THE AUTHENTICATED USER
+     *
+     */
+
+    @PreAuthorize("hasRole('USER')")
+    @PutMapping("/email") // LEAVE PUT UNLESS ADDING SENDING VERIFICATION LETTERS(non-repeatable flow)
+    public ResponseEntity<?> updateUserEmail(@AuthenticationPrincipal UserDetailsPrincipal principal, @RequestBody UpdateUserEmailRequest updateUserEmailRequest) {
+        userServiceImpl.updateEmail(principal.getUsername(), updateUserEmailRequest.getEmail());
+        return ResponseEntity.ok().build();
+    }
+
+    @PreAuthorize("hasRole('USER')")
+    @PutMapping("/phone")
+    public ResponseEntity<?> updateUserPhoneNumber(@AuthenticationPrincipal UserDetailsPrincipal principal, @RequestBody UpdateUserPhoneNumberRequest updateUserPhoneNumberRequest) {
+        userServiceImpl.updatePhoneNumber(principal.getUsername(), updateUserPhoneNumberRequest.getPhoneNumber());
+        return ResponseEntity.ok().build();
+    }
+
+    @PreAuthorize("hasRole('USER')")
+    @PutMapping("/changePassword")
+    public ResponseEntity<?> changePassword(@AuthenticationPrincipal UserDetailsPrincipal principal, @RequestBody ChangePasswordRequest changePasswordRequest) {
+        userServiceImpl.changePassword(principal.getUsername(), changePasswordRequest.getOldPassword(), changePasswordRequest.getNewPassword());
+        return ResponseEntity.ok().build();
+    }
+
+    /** USER DETAILS UPDATE METHODS FOR THE ADMIN
+     *
+     */
 
     // --------------------------- Test methods ---------------------------
     @GetMapping("/test")

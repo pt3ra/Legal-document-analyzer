@@ -10,12 +10,8 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class LoginRequest {
+public class UpdateUserPhoneNumberRequest {
 
-    @NotBlank(message = "Identifier cannot be blank")
-    private String identifier;
-
-    @NotBlank(message = "Password cannot be blank")
-    private String password;
-
+    @NotBlank(message = "Phone number cannot be blank")
+    private String phoneNumber;
 }

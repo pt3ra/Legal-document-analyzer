@@ -6,11 +6,19 @@ import java.util.Optional;
 
 public interface UserService {
 
-    Optional<User> findByLogin(String login);
+    User findByLogin(String login);
+
+    User findUser(String identifier);
+
+    User findUser(Long id);
 
     void saveUser(User user);
 
-    void updateUser(User user);
+    void updateEmail(String username, String email);
+
+    void updatePhoneNumber(String username, String phoneNumber);
+
+    void changePassword(String username, String oldPassword, String newPassword);
 
     void deleteUser(User user);
 }

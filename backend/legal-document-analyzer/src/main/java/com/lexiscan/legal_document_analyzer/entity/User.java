@@ -1,6 +1,7 @@
 package com.lexiscan.legal_document_analyzer.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -26,6 +27,7 @@ public class User {
     private String login;
 
     @NotNull
+    @Email
     @Column(unique = true)
     private String email;
 
