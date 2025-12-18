@@ -14,11 +14,11 @@ public interface UserService {
 
     void saveUser(User user);
 
-    void updateEmail(String username, String email);
+    void updateEmail(Long id, String email);
 
-    void updatePhoneNumber(String username, String phoneNumber);
+    void updatePhoneNumber(Long id, String phoneNumber);
 
-    void changePassword(String username, String oldPassword, String newPassword);
+    void changePassword(Long id, String oldPassword, String newPassword);
 
     void deleteUser(User user);
 }

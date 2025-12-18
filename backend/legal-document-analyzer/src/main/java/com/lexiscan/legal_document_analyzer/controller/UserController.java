@@ -4,8 +4,9 @@ import com.lexiscan.legal_document_analyzer.dto.*;
 import com.lexiscan.legal_document_analyzer.entity.User;
 import com.lexiscan.legal_document_analyzer.jwt.JwtUtils;
 import com.lexiscan.legal_document_analyzer.security.UserDetailsPrincipal;
-import com.lexiscan.legal_document_analyzer.service.UserServiceImpl;
+import com.lexiscan.legal_document_analyzer.service.UserService;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -29,23 +30,20 @@ import java.util.Map;
 @RequestMapping("/api/users")
 public class UserController {
 
-    private final UserServiceImpl userServiceImpl;
+    private final UserService userService;
 
     private final AuthenticationManager authenticationManager;
 
     private final JwtUtils jwtUtils;
 
-    public UserController (UserServiceImpl userServiceImpl, AuthenticationManager authenticationManager, JwtUtils jwtUtils) {
-        this.userServiceImpl = userServiceImpl;
+    @Value("${spring.app.cookieExpiration}")
+    private int cookieExpiration;
+
+    public UserController (UserService userService, AuthenticationManager authenticationManager, JwtUtils jwtUtils) {
+        this.userService = userService;
         this.authenticationManager = authenticationManager;
         this.jwtUtils = jwtUtils;
     }
-
-    /*@GetMapping("/{login}")
-    public ResponseEntity<User> getUserByLogin(@PathVariable String login) {
-        Optional<User> user = userServiceImpl.findByLogin(login);
-        return user.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build()); // ---> Replace with DTO
-    }*/
 
     @PreAuthorize("isAnonymous()")
     @PostMapping("/signin")
@@ -77,7 +75,7 @@ public class UserController {
                 .secure(true)
                 .sameSite("Strict")
                 .path("/")
-                .maxAge(60 * 15)
+                .maxAge(cookieExpiration)
                 .build();
 
         return ResponseEntity.ok()
@@ -90,7 +88,7 @@ public class UserController {
     public ResponseEntity<?> registerUser(@RequestBody SignUpRequest signUpRequest) {
         User user = new User(signUpRequest.getUsername(), signUpRequest.getPassword(), signUpRequest.getEmail());
 
-        userServiceImpl.saveUser(user);
+        userService.saveUser(user);
 
         return authenticateUser(new LoginRequest(signUpRequest.getUsername(), signUpRequest.getPassword()));
     }
@@ -125,23 +123,23 @@ public class UserController {
      */
 
     @PreAuthorize("hasRole('USER')")
-    @PutMapping("/email") // LEAVE PUT UNLESS ADDING SENDING VERIFICATION LETTERS(non-repeatable flow)
+    @PatchMapping("/email") // CHANGE TO POST IF SENDING VERIFICATION EMAILS
     public ResponseEntity<?> updateUserEmail(@AuthenticationPrincipal UserDetailsPrincipal principal, @RequestBody UpdateUserEmailRequest updateUserEmailRequest) {
-        userServiceImpl.updateEmail(principal.getUsername(), updateUserEmailRequest.getEmail());
+        userService.updateEmail(principal.getId(), updateUserEmailRequest.getEmail());
         return ResponseEntity.ok().build();
     }
 
     @PreAuthorize("hasRole('USER')")
-    @PutMapping("/phone")
+    @PatchMapping("/phone")
     public ResponseEntity<?> updateUserPhoneNumber(@AuthenticationPrincipal UserDetailsPrincipal principal, @RequestBody UpdateUserPhoneNumberRequest updateUserPhoneNumberRequest) {
-        userServiceImpl.updatePhoneNumber(principal.getUsername(), updateUserPhoneNumberRequest.getPhoneNumber());
+        userService.updatePhoneNumber(principal.getId(), updateUserPhoneNumberRequest.getPhoneNumber());
         return ResponseEntity.ok().build();
     }
 
     @PreAuthorize("hasRole('USER')")
-    @PutMapping("/changePassword")
+    @PatchMapping("/changePassword")
     public ResponseEntity<?> changePassword(@AuthenticationPrincipal UserDetailsPrincipal principal, @RequestBody ChangePasswordRequest changePasswordRequest) {
-        userServiceImpl.changePassword(principal.getUsername(), changePasswordRequest.getOldPassword(), changePasswordRequest.getNewPassword());
+        userService.changePassword(principal.getId(), changePasswordRequest.getOldPassword(), changePasswordRequest.getNewPassword());
         return ResponseEntity.ok().build();
     }
 
@@ -150,11 +148,6 @@ public class UserController {
      */
 
     // --------------------------- Test methods ---------------------------
-    @GetMapping("/test")
-    public void addUser() {
-        User user = new User("testLogin1", "testPassword1", "testEmail1@gmail.com");
-        userServiceImpl.saveUser(user);
-    }
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/admin")

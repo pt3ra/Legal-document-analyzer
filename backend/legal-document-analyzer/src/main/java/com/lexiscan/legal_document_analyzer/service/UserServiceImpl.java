@@ -71,22 +71,22 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         userRepository.save(user);
     }
 
-    public void updateEmail(String username, String email) {
-        User user = findByLogin(username);
+    public void updateEmail(Long id, String email) {
+        User user = findUser(id);
 
         user.setEmail(email);
         userRepository.save(user);
     }
 
-    public void updatePhoneNumber(String username, String phoneNumber) {
-        User user = findByLogin(username);
+    public void updatePhoneNumber(Long id, String phoneNumber) {
+        User user = findUser(id);
 
         user.setPhoneNumber(phoneNumber);
         userRepository.save(user);
     }
 
-    public void changePassword(String username, String oldPassword, String newPassword) {
-        User user = findByLogin(username);
+    public void changePassword(Long id, String oldPassword, String newPassword) {
+        User user = findUser(id);
 
         if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
             throw new BadCredentialsException("Old password is incorrect");
