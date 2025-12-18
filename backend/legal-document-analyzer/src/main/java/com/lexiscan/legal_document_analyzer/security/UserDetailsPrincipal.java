@@ -39,6 +39,10 @@ public class UserDetailsPrincipal implements UserDetails {
         return role.startsWith("ROLE_") ? role : "ROLE_" + role;
     }
 
+    public Long getId() {
+        return this.user.getId();
+    }
+
     @Override
     public String getUsername() {
         return this.user.getLogin();

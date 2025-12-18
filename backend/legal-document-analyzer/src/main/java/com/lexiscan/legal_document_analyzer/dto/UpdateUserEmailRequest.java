@@ -1,5 +1,6 @@
 package com.lexiscan.legal_document_analyzer.dto;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -10,12 +11,9 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class LoginRequest {
+public class UpdateUserEmailRequest {
 
-    @NotBlank(message = "Identifier cannot be blank")
-    private String identifier;
-
-    @NotBlank(message = "Password cannot be blank")
-    private String password;
-
+    @Email
+    @NotBlank(message = "Email cannot be blank")
+    private String email;
 }
